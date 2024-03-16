@@ -30,9 +30,9 @@ class VendorCreationView(APIView):
         serializer=VendorSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user_type="vendor")
-            return Response(data=serializer.data)
+            return Response(data={'status':1,'data':serializer.data})
         else:
-            return Response(data=serializer.errors)
+            return Response(data={'status':0,'data':serializer.errors})
 
 
 
@@ -49,9 +49,9 @@ class CategoryView(ViewSet):
         if vendor_object:
             if serializer.is_valid():
                 serializer.save(vendors=vendor_object)
-                return Response(data=serializer.data)
+                return Response(data={'status':1,'data':serializer.data})
             else:
-                return Response(data=serializer.errors)
+                return Response(data={'status':0,'data':serializer.errors})
         else:
             return Response(request,"vendor not found")
         
@@ -60,13 +60,13 @@ class CategoryView(ViewSet):
         vendor_object=Vendor.objects.get(id=vendor_id)
         qs=Category.objects.filter(vendors=vendor_object)
         serializer=CategorySerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     def retrieve(self,request,*args,**kwargs):
         id=kwargs.get("pk")
         qs=Category.objects.get(id=id)
         serializer=CategorySerializer(qs)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     
     def destroy(self,request,*args,**kwargs):
@@ -86,9 +86,9 @@ class CategoryView(ViewSet):
         vendor_object=Vendor.objects.get(id=vendor) 
         if serializer.is_valid():
             serializer.save(category=category_obj,vendor=vendor_object,is_active=True)
-            return Response(data=serializer.data)
+            return Response(data={'status':1,'data':serializer.data})
         else:
-            return Response(data=serializer.errors)
+            return Response(data={'status':0,'data':serializer.errors})
    
 
 class FoodView(ViewSet):
@@ -101,7 +101,7 @@ class FoodView(ViewSet):
         print(request.user.vendor.id)
         qs=Food.objects.filter(vendor=request.user.vendor.id)
         serializer=FoodSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     def update(self,request,*args,**kwargs): 
         id=kwargs.get("pk")
@@ -111,9 +111,9 @@ class FoodView(ViewSet):
         if instance.vendor==request.user.vendor:
             if serializer.is_valid():
                 serializer.save()
-                return Response(data=serializer.data)
+                return Response(data={'status':1,'data':serializer.data})
             else:
-                return Response(data=serializer.errors)
+                return Response(data={'status':0,'data':serializer.errors})
         else:
             return Response(data={"message":"permission denied"})
         
@@ -134,7 +134,7 @@ class FoodView(ViewSet):
         qs=Food.objects.get(id=id)
         if qs.vendor==request.user.vendor:
             serializer=FoodSerializer(qs)
-            return Response(data=serializer.data)
+            return Response(data={'status':1,'data':serializer.data})
         else:
             return Response(data={"message":"permission denied"})
     
@@ -147,9 +147,9 @@ class FoodView(ViewSet):
         vendor_object=Vendor.objects.get(id=vendor) 
         if serializer.is_valid():
             serializer.save(food=food_obj,vendors=vendor_object)
-            return Response(data=serializer.data)
+            return Response(data={'status':1,'data':serializer.data})
         else:
-            return Response(data=serializer.errors)
+            return Response(data={'status':0,'data':serializer.errors})
     
     @action(methods=["get"],detail=True)  
     def review_list(self,request,*args,**kwargs):
@@ -157,7 +157,7 @@ class FoodView(ViewSet):
         food_obj=Food.objects.get(id=food_id)
         qs=Review.objects.filter(food=food_obj)
         serializer=ReviewSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
         
 
@@ -170,7 +170,7 @@ class OfferView(ViewSet):
     def list(self,request,*args,**kwargs):
         qs=Offer.objects.filter(vendors=request.user.vendor,due_date__gte=timezone.now())
         serializer=OfferSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     def destroy(self,request,args,*kwargs):
         id=kwargs.get("pk")
@@ -192,7 +192,7 @@ class OrderView(ViewSet):
         vendor_id=request.user.id
         qs=Order.objects.filter(cart__cartitem__food__vendor=vendor_id)
         serializer=OrderSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
            
 
 def sign_out(request):

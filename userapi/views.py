@@ -22,9 +22,9 @@ class CustomerCreationView(APIView):
         serializer=CustomerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user_type="customer")
-            return Response(data=serializer.data)
+            return Response(data={'status':1,'data':serializer.data})
         else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'status':0,'data':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
 class CategoryView(ViewSet):
     authentication_classes=[authentication.TokenAuthentication]
@@ -34,7 +34,7 @@ class CategoryView(ViewSet):
     def list(self,request,*args,**kwargs):
         qs=Category.objects.filter(is_active=True)
         serializer=CategorySerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
 class VendorView(ViewSet):
     authentication_classes=[authentication.TokenAuthentication]
@@ -44,26 +44,26 @@ class VendorView(ViewSet):
     def list(self,request,*args,**kwargs):
         qs=Vendor.objects.all()
         serializer=VendorSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     def retrieve(self,request,*args,**kwargs):
         id=kwargs.get("pk")
         qs=Vendor.objects.get(id=id)
         serializer=VendorSerializer(qs)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     @action(methods=["post"],detail=True)
     def add_restaurantreview(self,request,*args,**kwargs):
         id=kwargs.get("pk")
         vendor_object=Vendor.objects.get(id=id) 
         user=request.user.customer
-        serializer=RestaurantReviewSerializer(data=request.data)
+        serializer=RestaurantReviewSerializer(data={'status':1,'data':request.data})
         
 
         if serializer.is_valid():
             serializer.save(user=user,vendor=vendor_object)
-            return Response(data=serializer.data)
-        return Response(data=serializer.errors)
+            return Response(data={'status':1,'data':serializer.data})
+        return Response(data={'status':0,'data':serializer.errors})
     
 class FoodView(ViewSet):
     authentication_classes=[authentication.TokenAuthentication]
@@ -73,7 +73,7 @@ class FoodView(ViewSet):
     def list(self,request,*args,**kwargs):  
         qs=Food.objects.filter(is_active=True)
         serializer=FoodSerializer(qs,many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
     @action(methods=["post"],detail=True)
     def add_to_cart(self, request, *args, **kwargs):
@@ -88,15 +88,15 @@ class FoodView(ViewSet):
             existing_cart_item.quantity+=new_quantity
             existing_cart_item.save()
             serializer=CartItemsSerializer(existing_cart_item)
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response(data={'status':1,'data':serializer.data}, status=status.HTTP_200_OK)
         else:
             serializer=CartItemsSerializer(data=request.data)
             
             if serializer.is_valid():
                 serializer.save(cart=cart_object,food=food_object,is_active=True)
-                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+                return Response(data={'status':1,'data':serializer.data}, status=status.HTTP_201_CREATED)
             
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'status':0,'data':serializer}.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
     
@@ -105,13 +105,13 @@ class FoodView(ViewSet):
         id=kwargs.get("pk")
         food_object=Food.objects.get(id=id) 
         user=request.user.customer
-        serializer=ReviewSerializer(data=request.data)
+        serializer=ReviewSerializer(data={'status':1,'data':request.data})
         
 
         if serializer.is_valid():
             serializer.save(user=user,food=food_object)
-            return Response(data=serializer.data)
-        return Response(data=serializer.errors)
+            return Response(data={'status':1,'data':serializer.data})
+        return Response(data={'status':0,'data':serializer.errors})
     
      
 razorpay_client = razorpay.Client(auth=("rzp_test_dGbzyUivWJNxDV", "4iYJQWiT6WT7xYcl1JdHSD3a"))
@@ -125,7 +125,7 @@ class CartView(ViewSet):
         user = request.user.customer
         qs = Cart.objects.filter(user=user)
         serializer = CartSerializer(qs, many=True)
-        return Response(data=serializer.data)
+        return Response(data={'status':1,'data':serializer.data})
     
 
     @action(methods=["post"], detail=True)
@@ -156,6 +156,7 @@ class CartView(ViewSet):
                 user_info={'name':user.name,'phone':user.phone}
 
                 return Response({
+                    'status':1,
                     'razorpay_order_id': razorpay_order_id,
                     'order_id': order.id,
                     'amount': order_amount,
@@ -165,7 +166,7 @@ class CartView(ViewSet):
                 print(e)
                 return Response({'error':'Error processing payment'},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data={'status':0,'data':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 
 def sign_out(request):
